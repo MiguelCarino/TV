@@ -78,6 +78,8 @@ a { color: inherit; }
    header's z-index keeps it above the overlay drawer on mobile. */
 .header-left .sb-toggle { display: none; margin-right: -10px; }
 
+/* Split brand: "Carino" → hub, the TV chip → this app's own root (fresh reload) */
+.brand { display: flex; align-items: center; flex-shrink: 0; }
 .brand-name {
   font-family: var(--display);
   font-size: 1.7rem; font-weight: 900; line-height: 1;
@@ -86,14 +88,14 @@ a { color: inherit; }
   -webkit-text-fill-color: transparent;
   cursor: pointer; white-space: nowrap; text-decoration: none;
 }
-.brand-name .app-tag {
-  -webkit-text-fill-color: var(--text);
+.brand .app-tag {
   font-family: var(--mono); font-size: .62rem; font-weight: 700;
   letter-spacing: .14em; text-transform: uppercase;
   border: 1px solid var(--border); border-radius: 4px;
-  padding: 3px 7px; margin-left: 12px; vertical-align: middle;
-  color: var(--accent);
+  padding: 3px 7px; margin-left: 12px;
+  color: var(--accent); text-decoration: none; transition: .2s;
 }
+.brand .app-tag:hover { border-color: var(--accent); background: rgba(234,179,8,.12); }
 
 .header-clock {
   display: flex; align-items: baseline; gap: 10px;
@@ -210,7 +212,7 @@ body.sidebar-collapsed .sidebar { margin-left: calc(var(--sidebar-w) * -1); }
 }
 .btn:hover { border-color: var(--accent); color: var(--accent); }
 .btn.btn-accent { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
-.btn.btn-accent:hover { background: #fde047; color: #000; }
+.btn.btn-accent:hover { background: #fbbf24; color: #000; }
 .btn.btn-ghost { background: transparent; }
 .btn.flex1 { flex: 1; justify-content: center; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
@@ -500,7 +502,7 @@ body.mode-motion #muteAllBtn { display: none; }
   .single-label { max-width: 130px; }     /* keep the toolbar from overflowing */
 }
 @media (max-width: 560px) {
-  .brand-name .app-tag { display: none; }
+  .brand .app-tag { display: none; }
   .status-toggle span { display: none; }
   .status-toggle { padding: 0 10px; }
   #muteAllBtn { padding: 7px 9px; }        /* keep icon + short label */
