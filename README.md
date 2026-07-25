@@ -1,4 +1,4 @@
-# Carino Multiviewer
+# Carino Newswall
 
 A live **news video wall**: watch many live streams from around the world at the
 same time, organized by country/category. Add any YouTube live or embeddable

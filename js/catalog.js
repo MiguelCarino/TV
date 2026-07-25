@@ -1,5 +1,5 @@
 /* =====================================================================
-   catalog.js — seed channel catalog for the Carino Multiviewer
+   catalog.js — seed channel catalog for the Carino Newswall
    ---------------------------------------------------------------------
    This is the built-in list. Users can add, edit, hide or delete entries
    from the UI; their changes live in localStorage and are merged on top

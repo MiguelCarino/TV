@@ -1,5 +1,5 @@
 /* =====================================================================
-   app.js — Carino Multiviewer
+   app.js — Carino Newswall
    Vanilla JS. No frameworks. Plays N live streams at once, loads/unloads
    them dynamically, persists to localStorage, and shares the wall via URL.
    ===================================================================== */
