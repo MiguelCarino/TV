@@ -836,7 +836,7 @@
       var io = new IntersectionObserver(function (entries) {
         if (motionIO !== io) return;   // ignore late callbacks from a replaced/torn-down observer
         entries.forEach(function (e) { if (e.isIntersecting) mountMotionMedia(e.target); else unmountMotionMedia(e.target); });
-      }, { root: mg, rootMargin: '200px 0px', threshold: 0.01 });
+      }, { root: mg, rootMargin: '200px 0px 480px 0px', threshold: 0.01 });
       motionIO = io;
       cards.forEach(function (c) { io.observe(c); });
     } else {
@@ -849,9 +849,35 @@
     var mg = $('#motionGrid');
     motionTimer = setInterval(function () {
       if (state.motionPaused || !document.body.classList.contains('mode-motion')) return;
+      if (mg.scrollHeight <= mg.clientHeight) return;   // nothing to scroll
       mg.scrollTop += 1;
+      recycleMotionRows(mg);
+      // tiny walls (content shorter than a row + buffer past the viewport)
+      // can never recycle — for those only, fall back to the old wrap
       if (mg.scrollTop + mg.clientHeight >= mg.scrollHeight - 2) mg.scrollTop = 0;
     }, 40);
+  }
+  // Endless wall: once a row has scrolled far enough past the top that its
+  // embeds are already torn down (beyond the observer's 200px margin), move
+  // its cards to the bottom and pull scrollTop back by exactly one row —
+  // the visible streams never move, never remount, and the scroll never ends.
+  function recycleMotionRows(mg) {
+    var BUF = 240;   // must exceed the IntersectionObserver's top rootMargin
+    for (var guard = 0; guard < 8; guard++) {
+      var cards = mg.children;
+      if (cards.length < 2) return;
+      var firstTop = cards[0].offsetTop, split = -1;
+      for (var i = 1; i < cards.length; i++) {
+        if (cards[i].offsetTop > firstTop) { split = i; break; }
+      }
+      if (split < 0) return;   // single row — nothing to recycle
+      var rowH = cards[split].offsetTop - firstTop;
+      if (rowH <= 0 || mg.scrollTop <= rowH + BUF) return;
+      var row = [];
+      for (var j = 0; j < split; j++) row.push(cards[j]);
+      row.forEach(function (c) { unmountMotionMedia(c); mg.appendChild(c); });
+      mg.scrollTop -= rowH;
+    }
   }
   function stopMotionScroll() { if (motionTimer) { clearInterval(motionTimer); motionTimer = null; } }
 
