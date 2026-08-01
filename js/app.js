@@ -109,7 +109,7 @@
   // Parse a pasted URL into {provider, source, name?} or {error}
   function detectProvider(raw) {
     var url = (raw || '').trim();
-    if (!url) return { error: 'Enter a URL.' };
+    if (!url) return { error: T('Enter a URL.') };
 
     // bare 11-char video id or UC… channel id
     if (/^[A-Za-z0-9_-]{11}$/.test(url)) return { provider: 'yt-video', source: url };
@@ -117,7 +117,7 @@
 
     var u;
     try { u = new URL(url.indexOf('http') === 0 ? url : 'https://' + url); }
-    catch (e) { return { error: 'That does not look like a valid URL.' }; }
+    catch (e) { return { error: T('That does not look like a valid URL.') }; }
 
     var host = u.hostname.replace(/^www\./, '').toLowerCase();
     var path = u.pathname;
@@ -126,7 +126,7 @@
     if (/\.m3u8(\?|#|$)/i.test(path)) return { provider: 'hls', source: u.href };
     if (/\.m3u(\?|#|$)/i.test(path))  return { provider: 'm3u', source: u.href };
     // raw transport-stream / container files browsers can't play in-page
-    if (/\.(ts|mkv|flv|avi|wmv|m2ts)(\?|#|$)/i.test(path)) return { error: 'That media format can’t play in a browser (only .m3u8 HLS streams).' };
+    if (/\.(ts|mkv|flv|avi|wmv|m2ts)(\?|#|$)/i.test(path)) return { error: T('That media format can’t play in a browser (only .m3u8 HLS streams).') };
 
     // YouTube
     if (host === 'youtu.be') {
@@ -143,7 +143,7 @@
       if ((m = path.match(/\/(@[^/]+)/))) return { provider: 'yt-handle', source: m[1] };
       if ((m = path.match(/\/user\/([^/]+)/))) return { provider: 'yt-handle', source: 'user/' + m[1] };
       if ((m = path.match(/\/c\/([^/]+)/)))    return { provider: 'yt-handle', source: 'c/' + m[1] };
-      return { error: 'Could not find a video or channel in that YouTube URL.' };
+      return { error: T('Could not find a video or channel in that YouTube URL.') };
     }
     // Twitch
     if (host.indexOf('twitch.tv') >= 0) {
@@ -164,7 +164,7 @@
     if (host.indexOf('odysee.com') >= 0) return { provider: 'odysee', source: toOdyseeEmbed(u) };
     // anything else → generic iframe, but only for a plausible domain
     if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)) return { provider: 'iframe', source: u.href };
-    return { error: 'That does not look like a valid URL.' };
+    return { error: T('That does not look like a valid URL.') };
   }
   function toOdyseeEmbed(u) {
     if (u.pathname.indexOf('/$/embed/') === 0) return u.href;
@@ -317,6 +317,9 @@
    * DOM helpers
    * ------------------------------------------------------------------ */
   function $(s, r) { return (r || document).querySelector(s); }
+  // i18n: i18n.js (deferred) defines window.t after this script runs; fall
+  // back to the English key until it exists.
+  function T(k) { return (typeof window.t === 'function') ? window.t(k) : k; }
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function initials(name) {
@@ -402,8 +405,8 @@
       '<div class="meta"><div class="nm">' + esc(ch.name) + '</div><div class="ds">' + esc(ch.desc || PROVIDER_LABEL[ch.provider] || '') + '</div></div>' +
       '<div class="badges">' + badges + '</div>' +
       '<div class="row-actions">' +
-        '<button class="r-pop" aria-label="Open ' + esc(ch.name) + ' source in a new tab" title="Open source in a new tab">↗</button>' +
-        '<button class="r-del" aria-label="' + (ch._custom ? 'Delete ' : 'Hide ') + esc(ch.name) + '" title="' + (ch._custom ? 'Delete' : 'Hide') + '">✕</button>' +
+        '<button class="r-pop" aria-label="Open ' + esc(ch.name) + ' source in a new tab" title="' + esc(T('Open source in a new tab')) + '">↗</button>' +
+        '<button class="r-del" aria-label="' + (ch._custom ? 'Delete ' : 'Hide ') + esc(ch.name) + '" title="' + esc(ch._custom ? T('Delete') : T('Hide')) + '">✕</button>' +
       '</div>';
 
     row.addEventListener('click', function (e) {
@@ -427,7 +430,7 @@
     wrap.innerHTML = '';
     state.active.forEach(function (id) {
       var ch = byId[id]; if (!ch) return;
-      var chip = el('div', 'active-chip', '<span>' + esc(ch.name) + '</span><button title="Remove" aria-label="Remove ' + esc(ch.name) + '">×</button>');
+      var chip = el('div', 'active-chip', '<span>' + esc(ch.name) + '</span><button title="' + esc(T('Remove')) + '" aria-label="Remove ' + esc(ch.name) + '">×</button>');
       $('button', chip).addEventListener('click', function () { toggleChannel(id); });
       wrap.appendChild(chip);
     });
@@ -462,14 +465,14 @@
     }
 
     var bar = el('div', 'tile-bar',
-      '<span class="drag" title="Drag to reorder" draggable="true" aria-hidden="true">⠿</span>' +
+      '<span class="drag" title="' + esc(T('Drag to reorder')) + '" draggable="true" aria-hidden="true">⠿</span>' +
       '<span class="t-title">' + esc(ch.name) + '</span>' +
-      '<button class="t-btn b-focus" aria-label="Make this the main/spotlight stream" title="Spotlight">★</button>' +
-      '<button class="t-btn b-mute" aria-label="Mute or unmute" title="Mute / unmute">' + (muted ? '🔇' : '🔊') + '</button>' +
-      '<button class="t-btn b-reload" aria-label="Reload stream" title="Reload">⟳</button>' +
-      '<button class="t-btn b-pop" aria-label="Open source in a new tab" title="Open source">↗</button>' +
-      '<button class="t-btn b-full" aria-label="Fullscreen" title="Fullscreen">⛶</button>' +
-      '<button class="t-btn b-close" aria-label="Close stream" title="Close">✕</button>');
+      '<button class="t-btn b-focus" aria-label="' + esc(T('Make this the main/spotlight stream')) + '" title="' + esc(T('Spotlight')) + '">★</button>' +
+      '<button class="t-btn b-mute" aria-label="' + esc(T('Mute or unmute')) + '" title="' + esc(T('Mute / unmute')) + '">' + (muted ? '🔇' : '🔊') + '</button>' +
+      '<button class="t-btn b-reload" aria-label="' + esc(T('Reload stream')) + '" title="' + esc(T('Reload')) + '">⟳</button>' +
+      '<button class="t-btn b-pop" aria-label="' + esc(T('Open source in a new tab')) + '" title="' + esc(T('Open source')) + '">↗</button>' +
+      '<button class="t-btn b-full" aria-label="' + esc(T('Fullscreen')) + '" title="' + esc(T('Fullscreen')) + '">⛶</button>' +
+      '<button class="t-btn b-close" aria-label="' + esc(T('Close stream')) + '" title="' + esc(T('Close')) + '">✕</button>');
 
     tile.appendChild(bar);
     tile.appendChild(media);
@@ -527,12 +530,12 @@
         hls.on(Hls.Events.ERROR, function (ev, data) {
           if (!data || !data.fatal) return;
           hls._retries = (hls._retries || 0) + 1;
-          if (hls._retries > 3) { try { hls.destroy(); } catch (e) {} video._hls = null; toast('Stream failed to load — likely offline or CORS-blocked.'); return; }
+          if (hls._retries > 3) { try { hls.destroy(); } catch (e) {} video._hls = null; toast(T('Stream failed to load — likely offline or CORS-blocked.')); return; }
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
           else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
           else { try { hls.destroy(); } catch (e) {} video._hls = null; }
         });
-      } else { toast('Could not load HLS support (hls.js) — try Safari, or check your connection.'); }
+      } else { toast(T('Could not load HLS support (hls.js) — try Safari, or check your connection.')); }
     });
   }
 
@@ -616,15 +619,15 @@
     document.body.classList.toggle('mode-focus', mode === 'focus');
     document.body.classList.toggle('mode-single', mode === 'single');
     g.style.gridTemplateColumns = ''; g.style.gridTemplateRows = '';
-    if (!ids.length) { $('#diagLayout').textContent = capitalize(mode); return; }
+    if (!ids.length) { $('#diagLayout').textContent = T(capitalize(mode)); return; }
 
     if (mode === 'single') {
       // one channel, full stage (renderGrid keeps only the primary tile loaded)
       g.style.gridTemplateColumns = '1fr'; g.style.gridTemplateRows = '1fr';
-      $('#diagLayout').textContent = 'Single' + (state.focusAuto ? ' (auto)' : '');
+      $('#diagLayout').textContent = T('Single') + (state.focusAuto ? ' (auto)' : '');
     } else if (mode === 'focus') {
       layoutFocus(g, ids);
-      $('#diagLayout').textContent = 'Focus' + (state.focusAuto ? ' (auto)' : '');
+      $('#diagLayout').textContent = T('Focus') + (state.focusAuto ? ' (auto)' : '');
     } else {
       // grid: fill the whole stage, no scroll/overflow; best columns for ~16:9
       var wrap = $('#gridWrap');
@@ -633,7 +636,7 @@
       g.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
       g.style.gridTemplateRows = 'repeat(' + rows + ',1fr)';
       ids.forEach(function (id, i) { if (tiles[id]) tiles[id].style.order = i; });
-      $('#diagLayout').textContent = 'Grid (' + cols + '×' + rows + ')';
+      $('#diagLayout').textContent = T('Grid') + ' (' + cols + '×' + rows + ')';
     }
   }
 
@@ -675,7 +678,7 @@
     var ch = pid ? byId[pid] : null;
     var idx = pid ? state.active.indexOf(pid) : -1;
     var label = $('#singleLabel');
-    if (label) label.textContent = ch ? ((idx + 1) + ' / ' + n + ' · ' + ch.name) : 'No streams on air';
+    if (label) label.textContent = ch ? ((idx + 1) + ' / ' + n + ' · ' + ch.name) : T('No streams on air');
     var dis = n < 2;
     var p = $('#singlePrev'), nx = $('#singleNext');
     if (p) p.disabled = dis;
@@ -684,7 +687,7 @@
 
   function updateChromeLabels() {
     var n = state.active.length;
-    $('#onAirLabel').textContent = n ? (n + ' stream' + (n > 1 ? 's' : '') + ' on air') : 'No streams on air';
+    $('#onAirLabel').textContent = n ? (n + ' ' + T(n > 1 ? 'streams on air' : 'stream on air')) : T('No streams on air');
     updateMuteAllBtn();
   }
 
@@ -697,13 +700,13 @@
       // and keep modes mutually exclusive on <body>
       Object.keys(tiles).forEach(destroyTile);
       document.body.classList.remove('mode-grid', 'mode-focus', 'mode-single');
-      state.motionPaused = false; $('#motionPause').textContent = '⏸ Pause';
+      state.motionPaused = false; $('#motionPause').textContent = T('⏸ Pause');
       $('#grid').style.display = 'none';
       $('#empty').style.display = 'none';
       $('#motionGrid').style.display = 'grid';
       renderMotion();
       updateChromeLabels(); updateDiag();
-      $('#diagLayout').textContent = 'Motion';
+      $('#diagLayout').textContent = T('Motion');
       return;
     }
     $('#motionGrid').style.display = 'none';
@@ -749,8 +752,8 @@
     // reflect on-air state across every card for this channel (the wall dupes them)
     document.querySelectorAll('#motionGrid .m-card[data-id="' + id + '"]').forEach(function (c) {
       c.classList.toggle('on', on);
-      var add = $('.m-add', c); if (add) add.textContent = on ? '✓ On air' : '＋ Add';
-      var st = $('.m-state', c); if (st) st.textContent = on ? '● ON AIR' : '▶ PLAY';
+      var add = $('.m-add', c); if (add) add.textContent = on ? T('✓ On air') : T('＋ Add');
+      var st = $('.m-state', c); if (st) st.textContent = on ? T('● ON AIR') : T('▶ PLAY');
     });
   }
   function buildMotionCard(ch) {
@@ -764,18 +767,18 @@
       '<div class="m-overlay">' +
         '<div class="m-bar">' +
           '<span class="m-nm">' + esc(ch.name) + '</span>' +
-          '<button class="m-pop" title="Open source in a new tab" aria-label="Open ' + esc(ch.name) + ' source in a new tab">↗</button>' +
+          '<button class="m-pop" title="' + esc(T('Open source in a new tab')) + '" aria-label="Open ' + esc(ch.name) + ' source in a new tab">↗</button>' +
         '</div>' +
         '<div class="m-foot">' +
-          '<button class="m-add" aria-label="' + (on ? 'Remove ' : 'Add ') + esc(ch.name) + (on ? ' from' : ' to') + ' your wall">' + (on ? '✓ On air' : '＋ Add') + '</button>' +
+          '<button class="m-add" aria-label="' + (on ? 'Remove ' : 'Add ') + esc(ch.name) + (on ? ' from' : ' to') + ' your wall">' + (on ? esc(T('✓ On air')) : esc(T('＋ Add'))) + '</button>' +
         '</div>' +
       '</div>' +
       (ch.note ? '<span class="m-badge">' + esc(ch.note) + '</span>' : '') +
-      '<span class="m-state">' + (on ? '● ON AIR' : '▶ PLAY') + '</span>';
+      '<span class="m-state">' + (on ? esc(T('● ON AIR')) : esc(T('▶ PLAY'))) + '</span>';
     $('.m-add', card).addEventListener('click', function (e) {
       e.stopPropagation();
       motionToggle(ch.id);
-      toast((state.active.indexOf(ch.id) >= 0 ? 'Added ' : 'Removed ') + ch.name + ' · switch to Single/Grid/Focus to watch');
+      toast(T(state.active.indexOf(ch.id) >= 0 ? 'Added {n} · switch to Single/Grid/Focus to watch' : 'Removed {n} · switch to Single/Grid/Focus to watch').replace('{n}', ch.name));
     });
     $('.m-pop', card).addEventListener('click', function (e) { e.stopPropagation(); window.open(sourceLink(ch), '_blank', 'noopener'); });
     return card;
@@ -820,7 +823,7 @@
     teardownMotion();
     var mg = $('#motionGrid'); mg.innerHTML = '';
     var pool = motionPool();
-    if (!pool.length) { mg.innerHTML = '<div class="motion-empty">Nothing on air yet. Switch the source to “All” to browse every channel.</div>'; return; }
+    if (!pool.length) { mg.innerHTML = '<div class="motion-empty">' + esc(T('Nothing on air yet. Switch the source to “All” to browse every channel.')) + '</div>'; return; }
     var cellW = 240, cellH = 150;   // ~matches the CSS grid track sizes
     var cols = Math.max(1, Math.floor((mg.clientWidth || window.innerWidth) / cellW));
     var rows = Math.max(1, Math.ceil((mg.clientHeight || window.innerHeight) / cellH));
@@ -948,11 +951,11 @@
     if (ch._custom) {
       state.custom = state.custom.filter(function (c) { return c.id !== ch.id; });
       persistCustom();
-      toast('Removed “' + ch.name + '”');
+      toast(T('Removed “{n}”').replace('{n}', ch.name));
     } else {
       if (state.hidden.indexOf(ch.id) < 0) state.hidden.push(ch.id);
       lsSet(LS.hidden, state.hidden);
-      toast('Hidden “' + ch.name + '” — restore via Settings → Reset');
+      toast(T('Hidden “{n}” — restore via Settings → Reset').replace('{n}', ch.name));
     }
     rebuildIndex(); state.custom.forEach(function (c) { c._custom = true; }); renderSidebar();
   }
@@ -993,8 +996,8 @@
     var risky = defs.filter(function (d) { return d.provider === 'iframe'; });
     if (risky.length) {
       var hosts = risky.map(function (d) { try { return new URL(d.source).hostname; } catch (e) { return d.source; } });
-      var ok = window.confirm('This shared link wants to embed ' + risky.length + ' external page(s):\n\n' +
-        hosts.join('\n') + '\n\nOnly continue if you trust whoever sent this link. Embed them?');
+      var ok = window.confirm(T('This shared link wants to embed {n} external page(s):').replace('{n}', risky.length) + '\n\n' +
+        hosts.join('\n') + '\n\n' + T('Only continue if you trust whoever sent this link. Embed them?'));
       if (!ok) defs = defs.filter(function (d) { return d.provider !== 'iframe'; });
     }
     defs.forEach(function (def) { def._custom = true; state.custom.push(def); });
@@ -1066,10 +1069,10 @@
     var r = detectProvider(raw);
     if (r.error) { d.textContent = '✕ ' + r.error; d.className = 'detected err'; return; }
     if (r.provider === 'iframe') {
-      d.textContent = '⚠ Will try to embed — many sites (YouTube watch pages, Twitch, social media, most news sites) block embedding and will show a blank tile.';
+      d.textContent = T('⚠ Will try to embed — many sites (YouTube watch pages, Twitch, social media, most news sites) block embedding and will show a blank tile.');
       d.className = 'detected warn';
     } else {
-      d.textContent = '✓ Detected: ' + (PROVIDER_LABEL[r.provider] || r.provider);
+      d.textContent = T('✓ Detected:') + ' ' + (PROVIDER_LABEL[r.provider] || r.provider);
       d.className = 'detected';
     }
     // try to prefill a name for YouTube videos via oEmbed (no key needed)
@@ -1103,17 +1106,17 @@
       if (!logo && provider === 'yt-video') logo = 'https://i.ytimg.com/vi/' + source + '/mqdefault.jpg';
       // run user input through the same validator as shared/imported defs
       var def = sanitizeDef({ name: name, desc: PROVIDER_LABEL[provider], category: cat, logo: logo, provider: provider, source: source, note: note });
-      if (!def) { toast('That stream could not be added.'); return; }
+      if (!def) { toast(T('That stream could not be added.')); return; }
       if (newCat && !CATS.some(function (c) { return c.id === def.category; })) CATS.push({ id: def.category, name: newCat, flag: '📺' });
       addCustomChannel(def, true);
       closeModal('#addModal');
-      toast('Added “' + def.name + '” and put it on air');
+      toast(T('Added “{n}” and put it on air').replace('{n}', def.name));
     }
 
     if (r.provider === 'yt-handle') {
-      if (!apiReady()) { toast('Add a YouTube API key in Settings to resolve @handles, or paste the channel’s UC… URL or a video link.'); return; }
-      toast('Resolving handle…');
-      resolveHandle(r.source).then(function (cid) { finish('yt-channel', cid); }).catch(function (e) { toast('Could not resolve handle: ' + e.message); });
+      if (!apiReady()) { toast(T('Add a YouTube API key in Settings to resolve @handles, or paste the channel’s UC… URL or a video link.')); return; }
+      toast(T('Resolving handle…'));
+      resolveHandle(r.source).then(function (cid) { finish('yt-channel', cid); }).catch(function (e) { toast(T('Could not resolve handle:') + ' ' + e.message); });
       return;
     }
     finish(r.provider, r.source);
@@ -1174,19 +1177,19 @@
     });
     persistCustom(); rebuildIndex(); state.custom.forEach(function (c) { c._custom = true; });
     renderSidebar();
-    toast('Imported ' + added + ' channel' + (added !== 1 ? 's' : '') + (skipped ? ' (' + skipped + ' skipped)' : '') + ' — find them in the Control Room');
+    toast(T(added !== 1 ? 'Imported {n} channels — find them in the Control Room' : 'Imported 1 channel — find it in the Control Room').replace('{n}', added) + (skipped ? ' ' + T('({n} skipped)').replace('{n}', skipped) : ''));
     return { added: added, skipped: skipped };
   }
   function importPlaylistFromText(text, fallbackCat, baseUrl) {
     var entries = parseM3U(text);
-    if (!entries.length) { toast('No channels found in that playlist.'); return; }
+    if (!entries.length) { toast(T('No channels found in that playlist.')); return; }
     addPlaylistEntries(entries, fallbackCat, baseUrl);
   }
   function importPlaylistFromUrl(url, fallbackCat) {
-    toast('Fetching playlist…');
+    toast(T('Fetching playlist…'));
     fetch(url).then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
       .then(function (t) { importPlaylistFromText(t, fallbackCat, url); })   // pass playlist URL as base
-      .catch(function () { toast('Could not fetch that playlist (usually CORS-blocked). Download the .m3u and use “Import file” instead.'); });
+      .catch(function () { toast(T('Could not fetch that playlist (usually CORS-blocked). Download the .m3u and use “Import file” instead.')); });
   }
 
   /* ----- Settings ----- */
@@ -1203,7 +1206,7 @@
     if (!state.remember) lsSet(LS.active, []);
     closeModal('#settingsModal');
     updateDiag();
-    toast('Settings saved');
+    toast(T('Settings saved'));
     if (changed && key) { liveCache = {}; liveInflight = {}; lsSet(LS.live, {}); renderGrid(); renderSidebar(); }
   }
   function exportConfig() {
@@ -1225,37 +1228,37 @@
         state.active = state.active.filter(function (id) { return byId[id]; });
         persistActive(); syncHash();
         renderSidebar(); renderGrid();
-        toast('Config imported');
-      } catch (e) { toast('Invalid config file'); }
+        toast(T('Config imported'));
+      } catch (e) { toast(T('Invalid config file')); }
     };
     rd.readAsText(file);
   }
   function resetAll() {
-    if (!confirm('Reset all custom channels, hidden channels and settings? This cannot be undone.')) return;
+    if (!confirm(T('Reset all custom channels, hidden channels and settings? This cannot be undone.'))) return;
     [LS.custom, LS.hidden, LS.layout, LS.open].forEach(function (k) { localStorage.removeItem(k); });
     state.custom = []; state.hidden = []; state.openCats = new Set(); state.layout = 'grid'; state.focusId = null;
     state.focusAuto = false;
-    var fab = $('#focusAutoBtn'); if (fab) { fab.classList.remove('on'); fab.setAttribute('aria-pressed', 'false'); fab.textContent = '⟳ Auto-rotate'; }
+    var fab = $('#focusAutoBtn'); if (fab) { fab.classList.remove('on'); fab.setAttribute('aria-pressed', 'false'); fab.textContent = T('⟳ Auto-rotate'); }
     CATS = MV_CATALOG.categories.slice();
     rebuildIndex();
     // drop any on-air streams that no longer exist, then re-render the wall
     state.active = state.active.filter(function (id) { return byId[id]; });
     persistActive(); syncHash();
     renderSidebar(); setLayoutButtons(); renderGrid();
-    closeModal('#settingsModal'); toast('Reset complete');
+    closeModal('#settingsModal'); toast(T('Reset complete'));
   }
 
   /* ------------------------------------------------------------------ *
    * Share
    * ------------------------------------------------------------------ */
   function shareWall() {
-    if (!state.active.length) { toast('Turn on some streams first, then share.'); return; }
+    if (!state.active.length) { toast(T('Turn on some streams first, then share.')); return; }
     syncHash();
     var url = location.href;
-    function done() { toast('Wall link copied to clipboard'); }
+    function done() { toast(T('Wall link copied to clipboard')); }
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(done, function () { prompt('Copy this wall link:', url); });
-    } else { prompt('Copy this wall link:', url); }
+      navigator.clipboard.writeText(url).then(done, function () { prompt(T('Copy this wall link:'), url); });
+    } else { prompt(T('Copy this wall link:'), url); }
   }
 
   /* ------------------------------------------------------------------ *
@@ -1273,7 +1276,7 @@
   function updateMuteAllBtn() {
     var anyUnmuted = state.active.some(function (id) { return state.muted[id] === false; });
     var b = $('#muteAllBtn');
-    b.textContent = (!state.active.length || anyUnmuted) ? '🔇 Mute all' : '🔊 Unmute all';
+    b.textContent = (!state.active.length || anyUnmuted) ? T('🔇 Mute all') : T('🔊 Unmute all');
     b.disabled = !state.active.length;
   }
 
@@ -1288,7 +1291,7 @@
     var local = p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
     var dc = $('#diagClock'); if (dc) dc.textContent = local;
     var h = d.getHours();
-    var g = h < 5 ? 'Burning the midnight oil.' : h < 12 ? 'Good morning.' : h < 18 ? 'Good afternoon.' : 'Good evening.';
+    var g = h < 5 ? T('Burning the midnight oil.') : h < 12 ? T('Good morning.') : h < 18 ? T('Good afternoon.') : T('Good evening.');
     $('#greeting').textContent = g;
   }
   function updateDiag() {
@@ -1296,14 +1299,14 @@
     $('#diagTotal').textContent = allChannels().length;
     $('#diagCustom').textContent = state.custom.length;
     var api = $('#diagApi'), live = $('#diagLive');
-    if (apiReady()) { api.textContent = 'Active'; api.className = 'diag-val good'; live.textContent = 'On (Data API v3)'; live.className = 'diag-val good'; }
-    else { api.textContent = 'Not set'; api.className = 'diag-val'; live.textContent = 'Embed fallback'; live.className = 'diag-val warn'; }
+    if (apiReady()) { api.textContent = T('Active'); api.className = 'diag-val good'; live.textContent = T('On (Data API v3)'); live.className = 'diag-val good'; }
+    else { api.textContent = T('Not set'); api.className = 'diag-val'; live.textContent = T('Embed fallback'); live.className = 'diag-val warn'; }
   }
   function apiError(err) {
     var msg = String(err && err.message || err);
-    if (/quota/i.test(msg)) toast('YouTube API quota exceeded — using embed fallback.');
-    else if (/keyInvalid|API key/i.test(msg)) toast('YouTube API key invalid — check Settings.');
-    else toast('YouTube API error: ' + msg);
+    if (/quota/i.test(msg)) toast(T('YouTube API quota exceeded — using embed fallback.'));
+    else if (/keyInvalid|API key/i.test(msg)) toast(T('YouTube API key invalid — check Settings.'));
+    else toast(T('YouTube API error:') + ' ' + msg);
   }
 
   /* ------------------------------------------------------------------ *
@@ -1380,11 +1383,11 @@
     // motion controls
     $('#motionPause').addEventListener('click', function () {
       state.motionPaused = !state.motionPaused;
-      $('#motionPause').textContent = state.motionPaused ? '▶ Resume' : '⏸ Pause';
+      $('#motionPause').textContent = state.motionPaused ? T('▶ Resume') : T('⏸ Pause');
     });
     $('#motionSource').addEventListener('click', function () {
       state.motionAll = !state.motionAll;
-      $('#motionSource').textContent = state.motionAll ? 'All channels' : 'On air only';
+      $('#motionSource').textContent = state.motionAll ? T('All channels') : T('On air only');
       if (state.layout === 'motion') renderMotion();
     });
     // single-mode channel stepper
@@ -1397,7 +1400,7 @@
       var fab = $('#focusAutoBtn');
       fab.classList.toggle('on', state.focusAuto);
       fab.setAttribute('aria-pressed', state.focusAuto ? 'true' : 'false');
-      fab.textContent = state.focusAuto ? '⟳ Auto-rotate: on' : '⟳ Auto-rotate';
+      fab.textContent = state.focusAuto ? T('⟳ Auto-rotate: on') : T('⟳ Auto-rotate');
       syncFocusRotate();
       applyLayout();   // refresh the (auto) hint in the diag label
     });
@@ -1409,7 +1412,7 @@
     // IPTV modal
     $('#iptvImportUrl').addEventListener('click', function () {
       var url = $('#iptv-url').value.trim();
-      if (!url) { toast('Paste an .m3u / .m3u8 playlist URL first.'); return; }
+      if (!url) { toast(T('Paste an .m3u / .m3u8 playlist URL first.')); return; }
       closeModal('#iptvModal'); importPlaylistFromUrl(url, $('#iptv-cat').value.trim().toLowerCase().replace(/\s+/g, '-') || 'iptv');
     });
     $('#iptvFile').addEventListener('change', function (e) {
@@ -1508,4 +1511,22 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
+
+  /* ------------------------------------------------------------------ *
+   * i18n refresh — re-render the JS-owned labels once i18n.js is up
+   * (deferred, runs before DOMContentLoaded) and whenever the user
+   * switches language via the fleet button (carino:langchange).
+   * ------------------------------------------------------------------ */
+  function refreshI18nLabels() {
+    try {
+      tick(); updateDiag(); updateChromeLabels(); updateSingleControls();
+      var mp = $('#motionPause'); if (mp) mp.textContent = state.motionPaused ? T('▶ Resume') : T('⏸ Pause');
+      var ms = $('#motionSource'); if (ms) ms.textContent = state.motionAll ? T('All channels') : T('On air only');
+      var fab = $('#focusAutoBtn'); if (fab) fab.textContent = state.focusAuto ? T('⟳ Auto-rotate: on') : T('⟳ Auto-rotate');
+      renderSidebar();
+      if (state.layout !== 'motion') applyLayout();   // refresh the diag layout label
+    } catch (e) {}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refreshI18nLabels);
+  window.addEventListener('carino:langchange', refreshI18nLabels);
 })();
