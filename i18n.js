@@ -7,6 +7,7 @@
 
 const I18N = {
     es: {
+        'Late shift.': 'Turno nocturno.',
         // Header & diagnostics
         'Sys. Status': 'Estado sist.',
         'Wall': 'Muro',
@@ -195,6 +196,7 @@ const I18N = {
         'Close stream': 'Cerrar el stream',
     },
     'pt-BR': {
+        'Late shift.': 'Turno da noite.',
         'Sys. Status': 'Status do sist.',
         'Wall': 'Mural',
         'Active streams': 'Streams ativos',
@@ -374,6 +376,7 @@ const I18N = {
         'Close stream': 'Fechar o stream',
     },
     ja: {
+        'Late shift.': '夜勤お疲れさま。',
         'Sys. Status': 'システム状態',
         'Wall': 'ウォール',
         'Active streams': '再生中の配信',
@@ -553,6 +556,7 @@ const I18N = {
         'Close stream': '配信を閉じる',
     },
     ru: {
+        'Late shift.': 'Ночная смена.',
         'Sys. Status': 'Статус сист.',
         'Wall': 'Стена',
         'Active streams': 'Активные потоки',
