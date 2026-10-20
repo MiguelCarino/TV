@@ -178,17 +178,19 @@
     'hls': 'HLS / IPTV stream', 'm3u': 'IPTV playlist (M3U)'
   };
 
+  // YouTube embeds use youtube-nocookie.com, YouTube's privacy-enhanced mode:
+  // it sets no cookies until the visitor interacts with the player.
   function embedUrl(ch, muted) {
     var ap = '1', mu = muted ? '1' : '0';
     switch (ch.provider) {
       case 'yt-video':
         // If a live videoId was resolved via API, ch._videoId overrides source
-        return 'https://www.youtube.com/embed/' + (ch._videoId || ch.source) +
+        return 'https://www.youtube-nocookie.com/embed/' + (ch._videoId || ch.source) +
                '?autoplay=' + ap + '&mute=' + mu + '&playsinline=1&rel=0';
       case 'yt-channel':
-        if (ch._videoId) return 'https://www.youtube.com/embed/' + ch._videoId +
+        if (ch._videoId) return 'https://www.youtube-nocookie.com/embed/' + ch._videoId +
                '?autoplay=' + ap + '&mute=' + mu + '&playsinline=1&rel=0';
-        return 'https://www.youtube.com/embed/live_stream?channel=' + ch.source +
+        return 'https://www.youtube-nocookie.com/embed/live_stream?channel=' + ch.source +
                '&autoplay=' + ap + '&mute=' + mu + '&playsinline=1&rel=0';
       case 'twitch':
         return 'https://player.twitch.tv/?channel=' + encodeURIComponent(ch.source) +
