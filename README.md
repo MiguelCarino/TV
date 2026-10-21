@@ -6,6 +6,8 @@ stream, arrange the grid, and share your exact wall with a link.
 
 Live: [tv.carino.systems](https://tv.carino.systems/) · part of [carino.systems](https://carino.systems/)
 
+![Carino TV](screenshot.webp)
+
 ## Features
 - **Watch N streams at once**, with four layout modes:
   - **Single** — one channel full screen. Step through your on-air streams with
