@@ -400,7 +400,10 @@
     if (ch.note) badges += '<span class="badge note">' + esc(ch.note) + '</span>';
     var lc = liveCache[ch.source];
     // only badge on a definitive result — skip error entries (unknown, not off)
-    if (ch.provider === 'yt-channel' && lc && !lc.error) badges += lc.live ? '<span class="badge live">LIVE</span>' : '<span class="badge off">OFF</span>';
+    if (ch.provider === 'yt-channel' && lc && !lc.error) {
+      var chk = esc(T('checked {time}').replace('{time}', hhmm(lc.ts)));
+      badges += '<span class="badge ' + (lc.live ? 'live' : 'off') + '" title="' + chk + '">' + (lc.live ? 'LIVE' : 'OFF') + '<span class="b-time">' + hhmm(lc.ts) + '</span></span>';
+    }
 
     row.innerHTML =
       avatarHTML(ch) +
@@ -490,6 +493,7 @@
 
     $('#grid').appendChild(tile);
     tiles[ch.id] = tile;
+    refreshTileTag(ch.id);
 
     // If API key set & a YouTube channel, resolve the actual live video for reliability + title/thumb
     if (apiReady() && ch.provider === 'yt-channel') {
@@ -501,8 +505,9 @@
           f.src = embedUrl(ch, state.muted[ch.id] !== false);
           if (info.title) { $('.t-title', tile).textContent = info.title; f.title = info.title; }
         }
+        refreshTileTag(ch.id);
         renderSidebar();
-      }).catch(function (err) { apiError(err); });
+      }).catch(function (err) { apiError(err); refreshTileTag(ch.id); renderLiveChip(); });
     }
   }
 
@@ -520,7 +525,16 @@
     return loadHls._p;
   }
   function attachHls(video, url) {
-    if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = url; return; } // Safari native
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {             // Safari (and newer Chromium) play HLS natively
+      if (!video._errBound) {
+        video._errBound = true;
+        video.addEventListener('error', function () {
+          if (video._dead || !video.isConnected) return;
+          showTileError(video, T('The stream did not load. It may be offline, or its server blocks playback from other sites.'));
+        });
+      }
+      video.src = url; return;
+    }
     loadHls().then(function (Hls) {
       // tile may have been closed while the CDN script was loading
       if (video._dead || !video.isConnected) return;
@@ -532,12 +546,12 @@
         hls.on(Hls.Events.ERROR, function (ev, data) {
           if (!data || !data.fatal) return;
           hls._retries = (hls._retries || 0) + 1;
-          if (hls._retries > 3) { try { hls.destroy(); } catch (e) {} video._hls = null; toast(T('Stream failed to load — likely offline or CORS-blocked.')); return; }
+          if (hls._retries > 3) { try { hls.destroy(); } catch (e) {} video._hls = null; toast(T('Stream failed to load — likely offline or CORS-blocked.')); showTileError(video, T('The stream did not load. It may be offline, or its server blocks playback from other sites.')); return; }
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
           else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
           else { try { hls.destroy(); } catch (e) {} video._hls = null; }
         });
-      } else { toast(T('Could not load HLS support (hls.js) — try Safari, or check your connection.')); }
+      } else { toast(T('Could not load HLS support (hls.js) — try Safari, or check your connection.')); showTileError(video, T('Could not load HLS support (hls.js) — try Safari, or check your connection.')); }
     });
   }
 
@@ -554,6 +568,7 @@
   function reloadTile(id) {
     var tile = tiles[id]; if (!tile) return;
     var v = tile.querySelector('video');
+    var err = tile.querySelector('.tile-err'); if (err) err.remove();
     if (v) { try { if (v._hls) { v._hls.destroy(); v._hls = null; } } catch (e) {} attachHls(v, byId[id].source); return; }
     var f = tile.querySelector('iframe'); if (f) { var s = f.src; f.src = 'about:blank'; setTimeout(function () { f.src = s; }, 60); }
   }
@@ -1040,7 +1055,7 @@
   function restoreFocus() { if (lastFocused && lastFocused.focus) { lastFocused.focus(); } lastFocused = null; }
   function closeModal(sel) { $(sel).classList.remove('open'); restoreFocus(); }
   function closeAllModals() {
-    var any = document.querySelectorAll('.modal-overlay.open');
+    var any = document.querySelectorAll('.modal-scrim.open');
     any.forEach(function (m) { m.classList.remove('open'); });
     if (any.length) restoreFocus();
   }
@@ -1285,16 +1300,13 @@
   /* ------------------------------------------------------------------ *
    * Navbar clock + greeting + diagnostics
    * ------------------------------------------------------------------ */
-  // Header clock (#clockLocal/#tzName + click-to-cycle) is owned by the shared
-  // module carino-clock.js; here we only keep #diagClock and the greeting fresh.
+  // The navbar, its clock and its greeting are carino-navbar.js (which loads
+  // carino-clock.js); here we only keep #diagClock fresh.
   function tick() {
     var d = new Date();
     var p = function (n) { return String(n).padStart(2, '0'); };
     var local = p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
     var dc = $('#diagClock'); if (dc) dc.textContent = local;
-    var h = d.getHours();
-    var g = h < 5 ? T('Burning the midnight oil.') : h < 12 ? T('Good morning.') : h < 18 ? T('Good afternoon.') : T('Good evening.');
-    $('#greeting').textContent = g;
   }
   function updateDiag() {
     $('#diagActive').textContent = state.active.length;
@@ -1303,6 +1315,62 @@
     var api = $('#diagApi'), live = $('#diagLive');
     if (apiReady()) { api.textContent = T('Active'); api.className = 'diag-val good'; live.textContent = T('On (Data API v3)'); live.className = 'diag-val good'; }
     else { api.textContent = T('Not set'); api.className = 'diag-val'; live.textContent = T('Embed fallback'); live.className = 'diag-val warn'; }
+    renderLiveChip();
+  }
+
+  /* Live detection, said out loud. Without an API key nothing checks whether a
+     channel is on air, so the navbar and every tile say so instead of letting a
+     tile pass for live. With a key, the stamp is the newest answer YouTube gave. */
+  function hhmm(ts) { var d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+  function setIf(e, prop, v) { if (e && e[prop] !== v) e[prop] = v; }   // the navbar refits on every class change
+  function renderLiveChip() {
+    var chip = $('#liveChip'), fresh = $('#liveFresh');
+    if (!chip || !fresh) return;
+    var newest = 0, newestErr = false;
+    Object.keys(liveCache).forEach(function (k) { var c = liveCache[k]; if (c && c.ts > newest) { newest = c.ts; newestErr = !!c.error; } });
+    if (!apiReady()) {
+      setIf(chip, 'className', 'live-chip stale');
+      setIf(chip, 'textContent', T('Live check off (no key)'));
+      chip.title = T('Without a YouTube API key, nothing checks whether a channel is live. Add a key in Settings.');
+      setIf(fresh, 'className', 'fresh paused');
+      setIf(fresh, 'textContent', T('not checked'));
+      return;
+    }
+    setIf(chip, 'className', 'live-chip ' + (newestErr ? 'err' : 'live'));
+    setIf(chip, 'textContent', newestErr ? T('Live check error') : T('Live check · YouTube'));
+    chip.title = newestErr ? T('The last YouTube API call failed; LIVE/OFF may be out of date.') : T('LIVE/OFF comes from the YouTube Data API.');
+    var stale = newest && (nowMs() - newest) > LIVE_TTL * 2;
+    setIf(fresh, 'className', 'fresh' + (!newest ? ' paused' : newestErr ? ' err' : stale ? ' stale' : ''));
+    setIf(fresh, 'textContent', !newest ? T('not checked yet') : T(newestErr ? 'failed {time}' : 'checked {time}').replace('{time}', hhmm(newest)));
+  }
+
+  // The tag on a tile: LIVE/OFF with the time it was checked, or UNVERIFIED.
+  function tileLiveTag(ch) {
+    var lc = ch.provider === 'yt-channel' && apiReady() ? liveCache[ch.source] : null;
+    if (lc && !lc.error) {
+      return '<span class="t-live ' + (lc.live ? 'live' : 'off') + '" title="' + esc(T('checked {time}').replace('{time}', hhmm(lc.ts))) + '">' +
+        (lc.live ? 'LIVE' : 'OFF') + ' · ' + hhmm(lc.ts) + '</span>';
+    }
+    var why = ch.provider === 'yt-channel' && !apiReady()
+      ? T('Live check is off: add a YouTube API key in Settings.')
+      : T('Nothing checks whether this stream is live.');
+    return '<span class="t-live unk" title="' + esc(why) + '">' + esc(T('Unverified')) + '</span>';
+  }
+  function refreshTileTag(id) {
+    var tile = tiles[id], ch = byId[id]; if (!tile || !ch) return;
+    var old = tile.querySelector('.t-live'); if (old) old.remove();
+    if (ch.provider === 'hls') return;   // the player itself shows whether it plays
+    tile.insertAdjacentHTML('beforeend', tileLiveTag(ch));
+  }
+
+  // A stream that failed for good: a panel on the tile itself, with Retry.
+  function showTileError(video, msg) {
+    var tile = video.closest && video.closest('.tile'); if (!tile) return;
+    var old = tile.querySelector('.tile-err'); if (old) old.remove();
+    var box = el('div', 'tile-err', '<b>' + esc(T('Offline or blocked')) + '</b><span>' + esc(msg) + '</span>' +
+      '<button class="btn" type="button">' + esc(T('Retry')) + '</button>');
+    $('button', box).addEventListener('click', function () { reloadTile(tile.dataset.id); });
+    tile.appendChild(box);
   }
   function apiError(err) {
     var msg = String(err && err.message || err);
@@ -1433,8 +1501,8 @@
     $('#resetBtn').addEventListener('click', resetAll);
 
     // modal close buttons + overlay click
-    document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { closeModal('#' + b.closest('.modal-overlay').id); }); });
-    document.querySelectorAll('.modal-overlay').forEach(function (m) {
+    document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { closeModal('#' + b.closest('.modal-scrim').id); }); });
+    document.querySelectorAll('.modal-scrim').forEach(function (m) {
       m.addEventListener('click', function (e) { if (e.target === m) closeModal('#' + m.id); });
       m.addEventListener('keydown', function (e) {            // trap Tab inside the open modal
         if (e.key !== 'Tab') return;
@@ -1526,6 +1594,7 @@
       var ms = $('#motionSource'); if (ms) ms.textContent = state.motionAll ? T('All channels') : T('On air only');
       var fab = $('#focusAutoBtn'); if (fab) fab.textContent = state.focusAuto ? T('⟳ Auto-rotate: on') : T('⟳ Auto-rotate');
       renderSidebar();
+      Object.keys(tiles).forEach(refreshTileTag);
       if (state.layout !== 'motion') applyLayout();   // refresh the diag layout label
     } catch (e) {}
   }

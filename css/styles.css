@@ -5,30 +5,14 @@
    ===================================================================== */
 
 :root {
-  /* Palette (from carino.systems) */
+  /* Fleet tokens (--bg, --accent, --text*, --border, fonts …) come from
+     carino-ui.css; these are TV's own. */
   --bg-header:    #050505;
   --bg-app:       #0a0a0a;
   --bg-panel:     #0d0d0d;
-  --bg-card:      #111111;
-  --bg-elev:      #161616;
-  --accent:       #eab308;          /* sharp gold */
   --accent-2:     #b45309;
-  --accent-faint: rgba(234,179,8,0.06);
-  --accent-glow:  rgba(234,179,8,0.18);
-  --accent-dim:   rgba(234,179,8,0.30);
-  --border:       #262626;
-  --border-hv:    #eab308;
-  --text:         #ffffff;
-  --text-sec:     #a3a3a3;
-  --text-muted:   #8a8a8a;   /* ≥4.5:1 on the dark backgrounds (WCAG AA) */
   --live:         #ef4444;
-  --ok:           #22c55e;
 
-  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
-  --display: 'Red Hat Display', var(--sans);
-
-  --nav-h: 70px;
   --sidebar-w: 320px;
   --tile-gap: 8px;
 }
@@ -54,124 +38,18 @@ a { color: inherit; }
 .chan:focus-visible { outline-offset: -2px; }
 
 /* ----------------------------------------------------------------- *
- * Carino navbar
+ * Navbar controls — the bar itself is carino-navbar.js; Sys. Status
+ * uses Branding's .diag-* dropdown
  * ----------------------------------------------------------------- */
-.top-header {
-  height: var(--nav-h);
-  flex-shrink: 0;
-  background: linear-gradient(180deg, #0f0f0f 0%, #050505 100%);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  position: relative;
-  z-index: 200;
-  gap: 16px;
-}
-.header-left  { display: flex; align-items: center; gap: 22px; min-width: 0; }
-.header-right { display: flex; align-items: center; gap: 12px; }
-/* Right-cluster slot order, fleet convention, read right-to-left:
-   GitHub + LinkedIn last, language beside them, then status, then
-   this app's own controls furthest from the edge. Set with `order`
-   because carino-lang.js injects itself asynchronously. */
-.header-right > * { order: 1; }
-.header-right > .status-toggle { order: 2; }
-.header-right > #cnLangBtn { order: 3; }
-.header-right > .social-row { order: 4; }
-
-/* Control-Room toggle — lives in the navbar (like netplan/network's ☰) so the
-   drawer is opened from the top bar. Mobile only: on desktop the Control Room is
-   always open, so the toggle is hidden (revealed in the ≤820px block below). The
-   header's z-index keeps it above the overlay drawer on mobile. */
-.header-left .sb-toggle { display: none; margin-right: -10px; }
-
-/* Split brand: "Carino" → hub, the TV chip → this app's own root (fresh reload) */
-.brand { display: flex; align-items: center; flex-shrink: 0; }
-.brand-name {
-  font-family: var(--display);
-  font-size: 1.7rem; font-weight: 900; line-height: 1;
-  background: linear-gradient(130deg, #fef08a 0%, #eab308 50%, #b45309 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-  cursor: pointer; white-space: nowrap; text-decoration: none;
-}
-.brand .app-tag {
-  font-family: var(--mono); font-size: .62rem; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase;
-  border: 1px solid var(--border); border-radius: 4px;
-  padding: 3px 7px; margin-left: 12px;
-  color: var(--accent); text-decoration: none; transition: .2s;
-}
-.brand .app-tag:hover { border-color: var(--accent); background: rgba(234,179,8,.12); }
-
-.header-clock {
-  display: flex; align-items: baseline; gap: 10px;
-  border-left: 1px solid var(--border); padding-left: 22px;
-}
-.clock-time { font-family: var(--mono); font-size: 1.15rem; font-weight: 700; }
-.clock-tz {
-  font-family: var(--mono); font-size: .62rem; font-weight: 700;
-  color: var(--bg-header); background: var(--accent);
-  padding: 2px 6px; border-radius: 3px;
-}
-.brand-greeting { font-family: var(--mono); font-size: .72rem; color: var(--text-sec); margin-left: 6px; }
-
-.social-row { display: flex; gap: 8px; }
-.icon-btn {
-  width: 32px; height: 32px;
-  border: 1px solid var(--border); border-radius: 4px;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-muted); transition: .2s; text-decoration: none;
-  background: transparent; cursor: pointer;
-}
-.icon-btn:hover {
-  border-color: var(--accent); color: var(--bg-header);
-  background: var(--accent); transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--accent-glow);
-}
-.icon-btn svg { width: 15px; height: 15px; }
-
-.status-toggle {
-  display: flex; align-items: center; gap: 8px;
-  background: transparent; border: 1px solid var(--border);
-  color: var(--text-sec); font-family: var(--mono);
-  font-size: .72rem; text-transform: uppercase; letter-spacing: .1em;
-  padding: 0 14px; height: 32px; border-radius: 4px; cursor: pointer; transition: .2s;
-}
-.status-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-faint); }
+.tv-actions { display: flex; align-items: center; gap: 8px; }
 .pulse-dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--accent); box-shadow: 0 0 8px var(--accent);
   animation: pulse-glow 2s ease-in-out infinite;
 }
 @keyframes pulse-glow { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
-
-/* Diagnostics dropdown */
-.diag-dropdown {
-  position: absolute; top: calc(var(--nav-h) - 6px); right: 16px;
-  width: 280px; background: var(--bg-card);
-  border: 1px solid var(--border); border-radius: 8px;
-  padding: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.6);
-  opacity: 0; visibility: hidden; transform: translateY(-8px);
-  transition: .18s; z-index: 210;
-}
-.diag-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
-.diag-section {
-  font-family: var(--mono); font-size: .6rem; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--text-muted);
-  margin: 10px 0 5px; border-bottom: 1px solid var(--border); padding-bottom: 4px;
-}
-.diag-section:first-child { margin-top: 0; }
-.diag-row { display: flex; justify-content: space-between; align-items: center; font-size: .8rem; padding: 2px 0; }
-
-/* Two short readings share one line. Each half keeps its natural width, so a
-   translation that outgrows the half wraps the pair back into full-width rows
-   instead of truncating — the panel is only 280px, and es/ru labels are long. */
-.diag-pair { display: flex; flex-wrap: wrap; justify-content: space-between; column-gap: 20px; }
-.diag-pair > .diag-row { flex: 0 1 auto; min-width: max-content; gap: 8px; }
-.diag-lbl { color: var(--text-sec); }
-.diag-val { font-family: var(--mono); color: var(--text); }
+@media (prefers-reduced-motion: reduce) { .pulse-dot { animation: none; } }
+.diag-dropdown { width: 280px; z-index: 210; text-align: left; }
 .diag-val.good { color: var(--ok); }
 .diag-val.warn { color: var(--accent); }
 
@@ -200,7 +78,6 @@ body.sidebar-collapsed .sidebar { margin-left: calc(var(--sidebar-w) * -1); }
   text-transform: uppercase; color: var(--accent); display: flex;
   align-items: center; gap: 8px; margin-bottom: 12px;
 }
-.sidebar-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 
 .search-box { position: relative; }
 .search-box input {
@@ -218,18 +95,8 @@ body.sidebar-collapsed .sidebar { margin-left: calc(var(--sidebar-w) * -1); }
 .search-box.has-text .search-clear { display: block; }
 
 .sidebar-actions { display: flex; gap: 6px; margin-top: 10px; }
-.btn {
-  font-family: var(--sans); font-size: .78rem; font-weight: 500;
-  border: 1px solid var(--border); background: var(--bg-elev); color: var(--text);
-  border-radius: 6px; padding: 7px 11px; cursor: pointer; transition: .15s;
-  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
-}
-.btn:hover { border-color: var(--accent); color: var(--accent); }
-.btn.btn-accent { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
-.btn.btn-accent:hover { background: #fbbf24; color: #000; }
-.btn.btn-ghost { background: transparent; }
 .btn.flex1 { flex: 1; justify-content: center; }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
+.sidebar-actions .btn, .toolbar .btn, .modal .btn { height: 32px; padding: 0 11px; white-space: nowrap; flex-shrink: 0; }
 
 .sidebar-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
 
@@ -300,6 +167,7 @@ body.sidebar-collapsed .sidebar { margin-left: calc(var(--sidebar-w) * -1); }
 .chan .row-actions button { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 2px; border-radius: 4px; font-size: .85rem; }
 .chan .row-actions button:hover { color: var(--accent); background: var(--bg-elev); }
 
+.sidebar > .data-foot { flex-shrink: 0; margin: 0; padding: 8px 16px 10px; }
 .cat-empty, .no-results { padding: 18px 16px; color: var(--text-muted); font-size: .82rem; text-align: center; }
 
 /* ----------------------------------------------------------------- *
@@ -311,12 +179,6 @@ body.sidebar-collapsed .sidebar { margin-left: calc(var(--sidebar-w) * -1); }
   flex-shrink: 0; height: 48px; display: flex; align-items: center; gap: 10px;
   padding: 0 14px; border-bottom: 1px solid var(--border); background: var(--bg-panel);
 }
-.sb-toggle {
-  width: 34px; height: 34px; border: 1px solid var(--border); background: var(--bg-elev);
-  border-radius: 6px; color: var(--text); cursor: pointer; font-size: 1rem; flex-shrink: 0;
-  display: inline-flex; align-items: center; justify-content: center; line-height: 1;
-}
-.sb-toggle:hover { border-color: var(--accent); color: var(--accent); }
 .toolbar .spacer { flex: 1; }
 .toolbar .tb-label { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
 
@@ -433,7 +295,20 @@ body.mode-motion #muteAllBtn { display: none; }
 }
 .tile-bar .t-btn:hover { background: var(--accent); color: #000; }
 .tile-bar .t-btn.on { background: var(--accent); color: #000; }
-.tile .t-live { position: absolute; left: 9px; bottom: 9px; z-index: 3; }
+.tile .t-live { position: absolute; left: 9px; bottom: 9px; z-index: 3; pointer-events: none; }
+/* Liveness on a tile: LIVE/OFF with the time YouTube was asked, or UNVERIFIED
+   when nothing checked it (no API key, or a provider with no live check). */
+.t-live { font-family: var(--mono); font-size: var(--fs-micro); font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  border-radius: 3px; padding: 2px 6px; border: 1px solid; background: rgba(0,0,0,.72); }
+.t-live.live { color: #fff; background: var(--live); border-color: var(--live); }
+.t-live.off { color: var(--text-sec); border-color: var(--border); }
+.t-live.unk { color: var(--warn); border-color: rgba(234,179,8,.45); border-style: dashed; }
+/* A stream that failed for good stays marked on its tile until retried. */
+.tile-err { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  background: rgba(5,5,5,.86); text-align: center; padding: 16px; }
+.tile-err b { font-family: var(--mono); font-size: var(--fs-sm); color: #fca5a5; text-transform: uppercase; letter-spacing: .06em; }
+.tile-err span { font-size: var(--fs-sm); color: var(--text-sec); max-width: 280px; }
+.badge .b-time { font-weight: 400; opacity: .85; margin-left: 3px; }
 
 /* Empty state */
 .empty {
@@ -448,16 +323,11 @@ body.mode-motion #muteAllBtn { display: none; }
 /* ----------------------------------------------------------------- *
  * Modals
  * ----------------------------------------------------------------- */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(3px);
-  z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
-  box-shadow: 0 30px 70px rgba(0,0,0,.7);
-}
+/* .modal-scrim / .modal come from carino-ui.css; TV opens one by adding .open */
+.modal-scrim { z-index: 300; padding: 20px; }
+.modal-scrim:not(.open) { display: none; }
+.modal { max-width: 460px; max-height: 88vh; overflow-y: auto; }
+.modal .field { min-width: 0; gap: 0; }
 .modal-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 20px; border-bottom: 1px solid var(--border);
@@ -484,13 +354,6 @@ body.mode-motion #muteAllBtn { display: none; }
 .row2 { display: flex; gap: 12px; }
 .row2 > * { flex: 1; }
 
-.toast {
-  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: var(--bg-elev); border: 1px solid var(--accent-dim); color: var(--text);
-  padding: 11px 18px; border-radius: 8px; font-size: .85rem; z-index: 400;
-  opacity: 0; transition: .25s; box-shadow: 0 10px 30px rgba(0,0,0,.5); pointer-events: none;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* Scrollbars */
 *::-webkit-scrollbar { width: 9px; height: 9px; }
@@ -503,22 +366,17 @@ body.mode-motion #muteAllBtn { display: none; }
  * ----------------------------------------------------------------- */
 @media (max-width: 820px) {
   :root { --sidebar-w: min(84vw, 340px); }
-  .header-left .sb-toggle { display: inline-flex; }   /* reveal the drawer toggle */
-  .header-clock, .brand-greeting { display: none; }
-  .top-header { padding: 0 14px; }
+  .app-body { position: relative; }   /* the drawer starts under the navbar */
   .sidebar { position: absolute; top: 0; bottom: 0; left: 0; z-index: 150; box-shadow: 12px 0 40px rgba(0,0,0,.6); }
   body:not(.sidebar-collapsed) .stage::after {
     content: ''; position: absolute; inset: 0; background: rgba(0,0,0,.5); z-index: 140;
   }
   .stage { position: relative; }
-  .toolbar { gap: 8px; padding: 0 10px; }
+  .toolbar { gap: 8px; padding: 0 10px; overflow-x: auto; scrollbar-width: none; }
   .toolbar .tb-label { display: none; }   /* hide "Layout" + on-air text; chips/diag still report it */
   .single-label { max-width: 130px; }     /* keep the toolbar from overflowing */
 }
 @media (max-width: 560px) {
-  .brand .app-tag { display: none; }
-  .status-toggle span { display: none; }
-  .status-toggle { padding: 0 10px; }
   #muteAllBtn { padding: 7px 9px; }        /* keep icon + short label */
   .single-label { max-width: 76px; }
   /* on phones, drop the (secondary) auto-rotate so the stepper + modes always fit */

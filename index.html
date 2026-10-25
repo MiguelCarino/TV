@@ -28,60 +28,41 @@
   <!-- /carino:head -->
   <link rel="icon" href="logo.webp" type="image/webp">
   <link rel="stylesheet" href="fonts/carino-fonts.css">
+  <link rel="stylesheet" href="carino-ui.css">
   <link href="css/styles.css" rel="stylesheet">
 </head>
 <body class="sidebar-open">
 
-  <!-- ============================ Carino navbar ============================ -->
-  <header class="top-header">
-    <div class="header-left">
-      <button class="sb-toggle" id="sbToggle" title="Toggle Control Room" aria-label="Toggle Control Room">☰</button>
-      <span class="brand">
-        <a class="brand-name" href="https://carino.systems/" title="Carino Systems — back to hub">Carino</a>
-        <a class="app-tag" href="./" title="TV — reload">TV</a>
-      </span>
-      <div class="header-clock">
-        <span class="clock-time" id="clockLocal">00:00:00</span>
-        <span class="clock-tz" id="tzName">UTC</span>
-        <span class="brand-greeting" id="greeting">System Ready.</span>
-      </div>
-    </div>
-
-    <div class="header-right">
-      <div class="social-row">
-        <a href="https://carino.systems/legal.html" class="icon-btn" id="cnLegal" title="Legal notice &amp; privacy" aria-label="Legal notice &amp; privacy">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-        </a>
-        <a href="https://github.com/MiguelCarino/TV" target="_blank" rel="noopener" class="icon-btn" title="TV on GitHub" aria-label="GitHub">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-        </a>
-        <a href="https://www.linkedin.com/in/miguelcarino94/" target="_blank" rel="noopener" class="icon-btn" title="LinkedIn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-        </a>
-      </div>
-      <button class="status-toggle" id="diagToggle" title="System status" aria-label="System status" aria-haspopup="true" aria-expanded="false" aria-controls="diagBox">
-        <span data-i18n>Sys. Status</span><div class="pulse-dot"></div>
+  <!-- ===================== Navbar controls (shared navbar) =====================
+       carino-navbar.js moves this block into its right cluster. Live detection
+       first (is "LIVE" checked, and when), then the Control Room toggle, which is
+       the one control a phone keeps in the bar, then Sys. Status. -->
+  <div class="tv-actions" data-carino-actions>
+    <span class="live-chip" id="liveChip" data-priority="2"></span>
+    <span class="fresh paused" id="liveFresh"></span>
+    <button class="cs-btn sb-toggle" id="sbToggle" data-priority="1" title="Toggle Control Room" aria-label="Toggle Control Room">☰ <span data-i18n>Channels</span></button>
+    <div class="diag-wrap">
+      <button class="diag-toggle" id="diagToggle" title="System status" aria-label="System status" aria-haspopup="true" aria-expanded="false" aria-controls="diagBox">
+        <span data-i18n>Sys. Status</span><span class="pulse-dot"></span>
       </button>
-    </div>
-
-    <!-- Diagnostics dropdown -->
-    <div class="diag-dropdown" id="diagBox">
-      <div class="diag-section" data-i18n>Wall</div>
-      <div class="diag-row"><span class="diag-lbl" data-i18n>Active streams</span><span class="diag-val" id="diagActive">0</span></div>
-      <div class="diag-pair">
-        <div class="diag-row"><span class="diag-lbl" data-i18n>In catalog</span><span class="diag-val" id="diagTotal">0</span></div>
-        <div class="diag-row"><span class="diag-lbl" data-i18n>Custom added</span><span class="diag-val" id="diagCustom">0</span></div>
-      </div>
-      <div class="diag-section">YouTube API</div>
-      <div class="diag-row"><span class="diag-lbl" data-i18n>Data API key</span><span class="diag-val" id="diagApi">Not set</span></div>
-      <div class="diag-row"><span class="diag-lbl" data-i18n>Live detection</span><span class="diag-val" id="diagLive">Embed fallback</span></div>
-      <div class="diag-section" data-i18n>Session</div>
-      <div class="diag-pair">
-        <div class="diag-row"><span class="diag-lbl" data-i18n>Layout</span><span class="diag-val" id="diagLayout">Big</span></div>
-        <div class="diag-row"><span class="diag-lbl" data-i18n>Local time</span><span class="diag-val" id="diagClock">--:--:--</span></div>
+      <div class="diag-dropdown" id="diagBox">
+        <div class="diag-section" data-i18n>Wall</div>
+        <div class="diag-row"><span class="diag-lbl" data-i18n>Active streams</span><span class="diag-val" id="diagActive">0</span></div>
+        <div class="diag-pair">
+          <div class="diag-row"><span class="diag-lbl" data-i18n>In catalog</span><span class="diag-val" id="diagTotal">0</span></div>
+          <div class="diag-row"><span class="diag-lbl" data-i18n>Custom added</span><span class="diag-val" id="diagCustom">0</span></div>
+        </div>
+        <div class="diag-section">YouTube API</div>
+        <div class="diag-row"><span class="diag-lbl" data-i18n>Data API key</span><span class="diag-val" id="diagApi">Not set</span></div>
+        <div class="diag-row"><span class="diag-lbl" data-i18n>Live detection</span><span class="diag-val" id="diagLive">Embed fallback</span></div>
+        <div class="diag-section" data-i18n>Session</div>
+        <div class="diag-pair">
+          <div class="diag-row"><span class="diag-lbl" data-i18n>Layout</span><span class="diag-val" id="diagLayout">Big</span></div>
+          <div class="diag-row"><span class="diag-lbl" data-i18n>Local time</span><span class="diag-val" id="diagClock">--:--:--</span></div>
+        </div>
       </div>
     </div>
-  </header>
+  </div>
 
   <!-- ============================ App body ============================ -->
   <div class="app-body">
@@ -89,7 +70,7 @@
     <!-- ----- Sidebar / Control Room ----- -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-head">
-        <div class="sidebar-title"><span class="dot"></span> <span data-i18n>Control Room</span></div>
+        <div class="sidebar-title"><span class="dot live"></span> <span data-i18n>Control Room</span></div>
 
         <div class="search-box" id="searchBox">
           <span class="search-ico" aria-hidden="true">⌕</span>
@@ -98,13 +79,13 @@
         </div>
 
         <div class="sidebar-actions">
-          <button class="btn btn-accent flex1" id="addBtn" title="Register a YouTube or any embeddable stream" data-i18n>＋ Add stream</button>
-          <button class="btn btn-ghost" id="iptvBtn" title="Import an IPTV / M3U playlist">📡 IPTV</button>
-          <button class="btn btn-ghost" id="settingsBtn" title="Settings (YouTube API key, import/export)">⚙</button>
+          <button class="btn btn-primary flex1" id="addBtn" title="Register a YouTube or any embeddable stream" data-i18n>＋ Add stream</button>
+          <button class="btn" id="iptvBtn" title="Import an IPTV / M3U playlist">📡 IPTV</button>
+          <button class="btn" id="settingsBtn" title="Settings (YouTube API key, import/export)">⚙</button>
         </div>
         <div class="sidebar-actions">
-          <button class="btn btn-ghost flex1" id="shareBtn" title="Copy a link that reopens this exact wall" data-i18n>🔗 Share wall</button>
-          <button class="btn btn-ghost flex1" id="clearBtn" title="Turn off all streams" data-i18n>⨯ Clear all</button>
+          <button class="btn flex1" id="shareBtn" title="Copy a link that reopens this exact wall" data-i18n>🔗 Share wall</button>
+          <button class="btn flex1" id="clearBtn" title="Turn off all streams" data-i18n>⨯ Clear all</button>
         </div>
       </div>
 
@@ -118,6 +99,7 @@
         <div id="catalog"></div>
         <div class="no-results" id="noResults" hidden data-i18n>No channels match your search.</div>
       </div>
+      <p class="data-foot" data-i18n>Data: YouTube and the stream sites you add, played from their own servers. Runs in your browser; nothing is uploaded.</p>
     </aside>
 
     <!-- ----- Stage ----- -->
@@ -133,18 +115,18 @@
           <button data-mode="motion" aria-label="Motion wall"        aria-pressed="false" title="Auto-scrolling wall of live channels" data-i18n>Motion</button>
         </div>
         <div class="single-controls" id="singleControls">
-          <button class="btn btn-ghost" id="singlePrev" title="Previous channel" aria-label="Previous channel">‹</button>
+          <button class="btn" id="singlePrev" title="Previous channel" aria-label="Previous channel">‹</button>
           <span class="single-label" id="singleLabel" aria-live="polite">—</span>
-          <button class="btn btn-ghost" id="singleNext" title="Next channel" aria-label="Next channel">›</button>
+          <button class="btn" id="singleNext" title="Next channel" aria-label="Next channel">›</button>
         </div>
         <div class="focus-controls" id="focusControls">
-          <button class="btn btn-ghost" id="focusAutoBtn" aria-label="Auto-rotate the primary channel" aria-pressed="false" title="Rotate through every channel automatically">⟳ Auto-rotate</button>
+          <button class="btn" id="focusAutoBtn" aria-label="Auto-rotate the primary channel" aria-pressed="false" title="Rotate through every channel automatically">⟳ Auto-rotate</button>
         </div>
         <div class="motion-controls" id="motionControls">
-          <button class="btn btn-ghost" id="motionSource" aria-label="Toggle the wall source: all channels or on-air only" title="Show all channels, or only the ones on air">All channels</button>
-          <button class="btn btn-ghost" id="motionPause" aria-label="Pause or resume the wall auto-scroll" title="Pause / resume auto-scroll">⏸ Pause</button>
+          <button class="btn" id="motionSource" aria-label="Toggle the wall source: all channels or on-air only" title="Show all channels, or only the ones on air">All channels</button>
+          <button class="btn" id="motionPause" aria-label="Pause or resume the wall auto-scroll" title="Pause / resume auto-scroll">⏸ Pause</button>
         </div>
-        <button class="btn btn-ghost" id="muteAllBtn" title="Mute / unmute every tile">🔊 Mute all</button>
+        <button class="btn" id="muteAllBtn" title="Mute / unmute every tile">🔊 Mute all</button>
       </div>
 
       <div class="grid-wrap" id="gridWrap">
@@ -155,14 +137,14 @@
           <h2 data-i18n>Your wall is empty</h2>
           <p><span data-i18n>Pick channels from the</span> <strong data-i18n>Control Room</strong> <span data-i18n>on the left to start watching, or hit</span> <span class="em-kbd" data-i18n>＋ Add stream</span> <span data-i18n>to register any YouTube live or
              embeddable URL. Your selection is saved and can be shared with a link.</span></p>
-          <button class="btn btn-accent" id="emptyAddBtn" data-i18n>＋ Add your first stream</button>
+          <button class="btn btn-primary" id="emptyAddBtn" data-i18n>＋ Add your first stream</button>
         </div>
       </div>
     </main>
   </div>
 
   <!-- ============================ Add-stream modal ============================ -->
-  <div class="modal-overlay" id="addModal">
+  <div class="modal-scrim" id="addModal">
     <div class="modal">
       <div class="modal-head">
         <h3 data-i18n>Add a stream</h3>
@@ -199,14 +181,14 @@
         </div>
       </div>
       <div class="modal-foot">
-        <button class="btn btn-ghost" data-close data-i18n>Cancel</button>
-        <button class="btn btn-accent" id="addSave" data-i18n>Add &amp; play</button>
+        <button class="btn" data-close data-i18n>Cancel</button>
+        <button class="btn btn-primary" id="addSave" data-i18n>Add &amp; play</button>
       </div>
     </div>
   </div>
 
   <!-- ============================ Settings modal ============================ -->
-  <div class="modal-overlay" id="settingsModal">
+  <div class="modal-scrim" id="settingsModal">
     <div class="modal">
       <div class="modal-head">
         <h3 data-i18n>Settings</h3>
@@ -240,18 +222,18 @@
         </div>
         <div class="field">
           <label data-i18n>Reset</label>
-          <button class="btn btn-ghost" id="resetBtn" data-i18n>Reset custom channels &amp; settings</button>
+          <button class="btn" id="resetBtn" data-i18n>Reset custom channels &amp; settings</button>
         </div>
       </div>
       <div class="modal-foot">
-        <button class="btn btn-ghost" data-close data-i18n>Close</button>
-        <button class="btn btn-accent" id="settingsSave" data-i18n>Save</button>
+        <button class="btn" data-close data-i18n>Close</button>
+        <button class="btn btn-primary" id="settingsSave" data-i18n>Save</button>
       </div>
     </div>
   </div>
 
   <!-- ============================ IPTV / M3U modal ============================ -->
-  <div class="modal-overlay" id="iptvModal">
+  <div class="modal-scrim" id="iptvModal">
     <div class="modal">
       <div class="modal-head">
         <h3 data-i18n>Import IPTV / M3U playlist</h3>
@@ -279,15 +261,15 @@
         </div>
       </div>
       <div class="modal-foot">
-        <button class="btn btn-ghost" data-close data-i18n>Cancel</button>
-        <button class="btn btn-accent" id="iptvImportUrl" data-i18n>Import from URL</button>
+        <button class="btn" data-close data-i18n>Cancel</button>
+        <button class="btn btn-primary" id="iptvImportUrl" data-i18n>Import from URL</button>
       </div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast info" id="toast" role="status"></div>
 
-  <script src="carino-clock.js" defer></script>
+  <script src="carino-navbar.js" data-app="TV" data-repo="TV" defer></script>
   <script src="carino-lang.js" defer></script>
   <script src="i18n.js" defer></script>
   <script src="js/catalog.js?v=3"></script>
