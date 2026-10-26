@@ -177,6 +177,12 @@
     'rutube': 'Rutube', 'odysee': 'Odysee', 'iframe': 'Embedded page',
     'hls': 'HLS / IPTV stream', 'm3u': 'IPTV playlist (M3U)'
   };
+  // A channel added by hand stores its provider label (in English) as its
+  // description; show that one in the page's language, leave any other as written.
+  function providerText(d) {
+    for (var k in PROVIDER_LABEL) if (PROVIDER_LABEL[k] === d) return T(d);
+    return d;
+  }
 
   // YouTube embeds use youtube-nocookie.com, YouTube's privacy-enhanced mode:
   // it sets no cookies until the visitor interacts with the player.
@@ -237,7 +243,7 @@
         var it = j.items[0];
         return it.id && it.id.channelId ? it.id.channelId : it.id;
       }
-      throw new Error('Channel not found');
+      throw new Error(T('Channel not found'));
     });
   }
 
@@ -322,6 +328,8 @@
   // i18n: i18n.js (deferred) defines window.t after this script runs; fall
   // back to the English key until it exists.
   function T(k) { return (typeof window.t === 'function') ? window.t(k) : k; }
+  // T() with the channel name filled into {name}, so a translation can put it where its grammar wants it.
+  function TN(k, name) { return T(k).replace('{name}', function () { return name; }); }
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function initials(name) {
@@ -394,7 +402,8 @@
     row.setAttribute('role', 'button');
     row.tabIndex = 0;
     row.setAttribute('aria-pressed', on ? 'true' : 'false');
-    row.setAttribute('aria-label', ch.name + (ch.desc ? ' — ' + ch.desc : ''));
+    var desc = providerText(ch.desc || PROVIDER_LABEL[ch.provider] || '');
+    row.setAttribute('aria-label', ch.name + (desc ? ' — ' + desc : ''));
 
     var badges = '';
     if (ch.note) badges += '<span class="badge note">' + esc(ch.note) + '</span>';
@@ -407,11 +416,11 @@
 
     row.innerHTML =
       avatarHTML(ch) +
-      '<div class="meta"><div class="nm">' + esc(ch.name) + '</div><div class="ds">' + esc(ch.desc || PROVIDER_LABEL[ch.provider] || '') + '</div></div>' +
+      '<div class="meta"><div class="nm">' + esc(ch.name) + '</div><div class="ds">' + esc(desc) + '</div></div>' +
       '<div class="badges">' + badges + '</div>' +
       '<div class="row-actions">' +
-        '<button class="r-pop" aria-label="Open ' + esc(ch.name) + ' source in a new tab" title="' + esc(T('Open source in a new tab')) + '">↗</button>' +
-        '<button class="r-del" aria-label="' + (ch._custom ? 'Delete ' : 'Hide ') + esc(ch.name) + '" title="' + esc(ch._custom ? T('Delete') : T('Hide')) + '">✕</button>' +
+        '<button class="r-pop" aria-label="' + esc(TN('Open {name} source in a new tab', ch.name)) + '" title="' + esc(T('Open source in a new tab')) + '">↗</button>' +
+        '<button class="r-del" aria-label="' + esc(TN(ch._custom ? 'Delete {name}' : 'Hide {name}', ch.name)) + '" title="' + esc(ch._custom ? T('Delete') : T('Hide')) + '">✕</button>' +
       '</div>';
 
     row.addEventListener('click', function (e) {
@@ -435,7 +444,7 @@
     wrap.innerHTML = '';
     state.active.forEach(function (id) {
       var ch = byId[id]; if (!ch) return;
-      var chip = el('div', 'active-chip', '<span>' + esc(ch.name) + '</span><button title="' + esc(T('Remove')) + '" aria-label="Remove ' + esc(ch.name) + '">×</button>');
+      var chip = el('div', 'active-chip', '<span>' + esc(ch.name) + '</span><button title="' + esc(T('Remove')) + '" aria-label="' + esc(TN('Remove {name}', ch.name)) + '">×</button>');
       $('button', chip).addEventListener('click', function () { toggleChannel(id); });
       wrap.appendChild(chip);
     });
@@ -769,7 +778,11 @@
     // reflect on-air state across every card for this channel (the wall dupes them)
     document.querySelectorAll('#motionGrid .m-card[data-id="' + id + '"]').forEach(function (c) {
       c.classList.toggle('on', on);
-      var add = $('.m-add', c); if (add) add.textContent = on ? T('✓ On air') : T('＋ Add');
+      var add = $('.m-add', c);
+      if (add) {
+        add.textContent = on ? T('✓ On air') : T('＋ Add');
+        if (byId[id]) add.setAttribute('aria-label', TN(on ? 'Remove {name} from your wall' : 'Add {name} to your wall', byId[id].name));
+      }
       var st = $('.m-state', c); if (st) st.textContent = on ? T('● ON AIR') : T('▶ PLAY');
     });
   }
@@ -784,10 +797,10 @@
       '<div class="m-overlay">' +
         '<div class="m-bar">' +
           '<span class="m-nm">' + esc(ch.name) + '</span>' +
-          '<button class="m-pop" title="' + esc(T('Open source in a new tab')) + '" aria-label="Open ' + esc(ch.name) + ' source in a new tab">↗</button>' +
+          '<button class="m-pop" title="' + esc(T('Open source in a new tab')) + '" aria-label="' + esc(TN('Open {name} source in a new tab', ch.name)) + '">↗</button>' +
         '</div>' +
         '<div class="m-foot">' +
-          '<button class="m-add" aria-label="' + (on ? 'Remove ' : 'Add ') + esc(ch.name) + (on ? ' from' : ' to') + ' your wall">' + (on ? esc(T('✓ On air')) : esc(T('＋ Add'))) + '</button>' +
+          '<button class="m-add" aria-label="' + esc(TN(on ? 'Remove {name} from your wall' : 'Add {name} to your wall', ch.name)) + '">' + (on ? esc(T('✓ On air')) : esc(T('＋ Add'))) + '</button>' +
         '</div>' +
       '</div>' +
       (ch.note ? '<span class="m-badge">' + esc(ch.note) + '</span>' : '') +
@@ -1089,7 +1102,7 @@
       d.textContent = T('⚠ Will try to embed — many sites (YouTube watch pages, Twitch, social media, most news sites) block embedding and will show a blank tile.');
       d.className = 'detected warn';
     } else {
-      d.textContent = T('✓ Detected:') + ' ' + (PROVIDER_LABEL[r.provider] || r.provider);
+      d.textContent = T('✓ Detected:') + ' ' + (PROVIDER_LABEL[r.provider] ? T(PROVIDER_LABEL[r.provider]) : r.provider);
       d.className = 'detected';
     }
     // try to prefill a name for YouTube videos via oEmbed (no key needed)
