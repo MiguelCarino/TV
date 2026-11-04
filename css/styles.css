@@ -38,20 +38,9 @@ a { color: inherit; }
 .chan:focus-visible { outline-offset: -2px; }
 
 /* ----------------------------------------------------------------- *
- * Navbar controls — the bar itself is carino-navbar.js; Sys. Status
- * uses Branding's .diag-* dropdown
+ * Navbar controls — the bar itself is carino-navbar.js
  * ----------------------------------------------------------------- */
 .tv-actions { display: flex; align-items: center; gap: 8px; }
-.pulse-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 8px var(--accent);
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-@keyframes pulse-glow { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
-@media (prefers-reduced-motion: reduce) { .pulse-dot { animation: none; } }
-.diag-dropdown { width: 280px; z-index: 210; text-align: left; }
-.diag-val.good { color: var(--ok); }
-.diag-val.warn { color: var(--accent); }
 
 /* ----------------------------------------------------------------- *
  * App shell
@@ -373,7 +362,7 @@ body.mode-motion #muteAllBtn { display: none; }
   }
   .stage { position: relative; }
   .toolbar { gap: 8px; padding: 0 10px; overflow-x: auto; scrollbar-width: none; }
-  .toolbar .tb-label { display: none; }   /* hide "Layout" + on-air text; chips/diag still report it */
+  .toolbar .tb-label { display: none; }   /* hide "Layout" + on-air text; the chips still report it */
   .single-label { max-width: 130px; }     /* keep the toolbar from overflowing */
 }
 @media (max-width: 560px) {

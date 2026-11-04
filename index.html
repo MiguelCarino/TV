@@ -86,36 +86,30 @@
   </style>
 </head>
 <body class="sidebar-open">
+<!-- Key words: the navbar shows them, translated, under its Language tab. -->
+<ul data-carino-words hidden>
+  <li>Add a stream</li>
+  <li>Single</li>
+  <li>Grid</li>
+  <li>Focus</li>
+  <li>Stream URL</li>
+  <li>Category</li>
+</ul>
+
+<!-- Bundled libraries: the navbar lists them in its About window, Licence tab. -->
+<ul data-carino-libs data-href="https://github.com/MiguelCarino/TV/blob/main/vendor/README.md" hidden>
+  <li data-licence="Apache-2.0">hls.js</li>
+</ul>
+
 
   <!-- ===================== Navbar controls (shared navbar) =====================
        carino-navbar.js moves this block into its right cluster. Live detection
        first (is "LIVE" checked, and when), then the Control Room toggle, which is
-       the one control a phone keeps in the bar, then Sys. Status. -->
+       the one control a phone keeps in the bar. -->
   <div class="tv-actions" data-carino-actions>
     <span class="live-chip" id="liveChip" data-priority="2"></span>
     <span class="fresh paused" id="liveFresh"></span>
     <button class="cs-btn sb-toggle" id="sbToggle" data-priority="1" title="Toggle Control Room" aria-label="Toggle Control Room">☰ <span data-i18n>Channels</span></button>
-    <div class="diag-wrap">
-      <button class="diag-toggle" id="diagToggle" title="System status" aria-label="System status" aria-haspopup="true" aria-expanded="false" aria-controls="diagBox">
-        <span data-i18n>Sys. Status</span><span class="pulse-dot"></span>
-      </button>
-      <div class="diag-dropdown" id="diagBox">
-        <div class="diag-section" data-i18n>Wall</div>
-        <div class="diag-row"><span class="diag-lbl" data-i18n>Active streams</span><span class="diag-val" id="diagActive">0</span></div>
-        <div class="diag-pair">
-          <div class="diag-row"><span class="diag-lbl" data-i18n>In catalog</span><span class="diag-val" id="diagTotal">0</span></div>
-          <div class="diag-row"><span class="diag-lbl" data-i18n>Custom added</span><span class="diag-val" id="diagCustom">0</span></div>
-        </div>
-        <div class="diag-section">YouTube API</div>
-        <div class="diag-row"><span class="diag-lbl" data-i18n>Data API key</span><span class="diag-val" id="diagApi">Not set</span></div>
-        <div class="diag-row"><span class="diag-lbl" data-i18n>Live detection</span><span class="diag-val" id="diagLive">Embed fallback</span></div>
-        <div class="diag-section" data-i18n>Session</div>
-        <div class="diag-pair">
-          <div class="diag-row"><span class="diag-lbl" data-i18n>Layout</span><span class="diag-val" id="diagLayout">Big</span></div>
-          <div class="diag-row"><span class="diag-lbl" data-i18n>Local time</span><span class="diag-val" id="diagClock">--:--:--</span></div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- ============================ App body ============================ -->

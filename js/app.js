@@ -392,7 +392,7 @@
 
     $('#noResults').hidden = anyMatch;
     renderActiveStrip();
-    updateDiag();
+    renderLiveChip();
   }
 
   function renderChannelRow(ch) {
@@ -645,15 +645,13 @@
     document.body.classList.toggle('mode-focus', mode === 'focus');
     document.body.classList.toggle('mode-single', mode === 'single');
     g.style.gridTemplateColumns = ''; g.style.gridTemplateRows = '';
-    if (!ids.length) { $('#diagLayout').textContent = T(capitalize(mode)); return; }
+    if (!ids.length) return;
 
     if (mode === 'single') {
       // one channel, full stage (renderGrid keeps only the primary tile loaded)
       g.style.gridTemplateColumns = '1fr'; g.style.gridTemplateRows = '1fr';
-      $('#diagLayout').textContent = T('Single') + (state.focusAuto ? ' (auto)' : '');
     } else if (mode === 'focus') {
       layoutFocus(g, ids);
-      $('#diagLayout').textContent = T('Focus') + (state.focusAuto ? ' (auto)' : '');
     } else {
       // grid: fill the whole stage, no scroll/overflow; best columns for ~16:9
       var wrap = $('#gridWrap');
@@ -662,7 +660,6 @@
       g.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
       g.style.gridTemplateRows = 'repeat(' + rows + ',1fr)';
       ids.forEach(function (id, i) { if (tiles[id]) tiles[id].style.order = i; });
-      $('#diagLayout').textContent = T('Grid') + ' (' + cols + '×' + rows + ')';
     }
   }
 
@@ -731,8 +728,7 @@
       $('#empty').style.display = 'none';
       $('#motionGrid').style.display = 'grid';
       renderMotion();
-      updateChromeLabels(); updateDiag();
-      $('#diagLayout').textContent = T('Motion');
+      updateChromeLabels(); renderLiveChip();
       return;
     }
     $('#motionGrid').style.display = 'none';
@@ -771,7 +767,7 @@
     var i = state.active.indexOf(id);
     if (i >= 0) state.active.splice(i, 1); else state.active.push(id);
     persistActive(); syncHash();
-    renderActiveStrip(); updateChromeLabels(); updateDiag();
+    renderActiveStrip(); updateChromeLabels(); renderLiveChip();
     var on = state.active.indexOf(id) >= 0;
     var r = document.querySelector('.chan[data-id="' + id + '"]');
     if (r) { r.classList.toggle('active', on); r.setAttribute('aria-pressed', on ? 'true' : 'false'); }
@@ -963,7 +959,7 @@
       r.classList.toggle('active', on);
       r.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
-    renderActiveStrip(); updateDiag();
+    renderActiveStrip(); renderLiveChip();
   }
   function persistActive() { if (state.remember) lsSet(LS.active, state.active); }
 
@@ -1235,7 +1231,7 @@
     state.remember = $('#f-remember').checked; lsSet(LS.remember, state.remember);
     if (!state.remember) lsSet(LS.active, []);
     closeModal('#settingsModal');
-    updateDiag();
+    renderLiveChip();
     toast(T('Settings saved'));
     if (changed && key) { liveCache = {}; liveInflight = {}; lsSet(LS.live, {}); renderGrid(); renderSidebar(); }
   }
@@ -1311,25 +1307,10 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * Navbar clock + greeting + diagnostics
+   * Navbar live chip
    * ------------------------------------------------------------------ */
   // The navbar, its clock and its greeting are carino-navbar.js (which loads
-  // carino-clock.js); here we only keep #diagClock fresh.
-  function tick() {
-    var d = new Date();
-    var p = function (n) { return String(n).padStart(2, '0'); };
-    var local = p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
-    var dc = $('#diagClock'); if (dc) dc.textContent = local;
-  }
-  function updateDiag() {
-    $('#diagActive').textContent = state.active.length;
-    $('#diagTotal').textContent = allChannels().length;
-    $('#diagCustom').textContent = state.custom.length;
-    var api = $('#diagApi'), live = $('#diagLive');
-    if (apiReady()) { api.textContent = T('Active'); api.className = 'diag-val good'; live.textContent = T('On (Data API v3)'); live.className = 'diag-val good'; }
-    else { api.textContent = T('Not set'); api.className = 'diag-val'; live.textContent = T('Embed fallback'); live.className = 'diag-val warn'; }
-    renderLiveChip();
-  }
+  // carino-clock.js); the app only keeps its live chip current (renderLiveChip).
 
   /* Live detection, said out loud. Without an API key nothing checks whether a
      channel is on air, so the navbar and every tile say so instead of letting a
@@ -1422,12 +1403,6 @@
    * ------------------------------------------------------------------ */
   function wire() {
     // navbar
-    function syncDiagAria() { $('#diagToggle').setAttribute('aria-expanded', $('#diagBox').classList.contains('open') ? 'true' : 'false'); }
-    $('#diagToggle').addEventListener('click', function (e) { e.stopPropagation(); $('#diagBox').classList.toggle('open'); syncDiagAria(); });
-    document.addEventListener('click', function (e) {
-      var box = $('#diagBox');
-      if (box.classList.contains('open') && !box.contains(e.target) && !$('#diagToggle').contains(e.target)) { box.classList.remove('open'); syncDiagAria(); }
-    });
 
     // Motion's CSS grid (auto-fill) reflows columns on its own, so a resize/
     // sidebar-toggle must NOT rebuild the wall (that resets scroll & churns DOM).
@@ -1485,7 +1460,7 @@
       fab.setAttribute('aria-pressed', state.focusAuto ? 'true' : 'false');
       fab.textContent = state.focusAuto ? T('⟳ Auto-rotate: on') : T('⟳ Auto-rotate');
       syncFocusRotate();
-      applyLayout();   // refresh the (auto) hint in the diag label
+      applyLayout();
     });
 
     // add modal
@@ -1528,7 +1503,7 @@
 
     // keyboard
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { closeAllModals(); $('#diagBox').classList.remove('open'); syncDiagAria(); }
+      if (e.key === 'Escape') closeAllModals();
       var ae = document.activeElement;
       if (e.key === '/' && ae && ae.tagName !== 'INPUT' && ae.tagName !== 'TEXTAREA' && ae.tagName !== 'SELECT' && !ae.isContentEditable) {
         e.preventDefault(); search.focus();
@@ -1586,8 +1561,7 @@
     setLayoutButtons();
     renderSidebar();
     renderGrid();
-    updateDiag();
-    tick(); setInterval(tick, 1000);
+    renderLiveChip();
     syncHash();
     wire();
   }
@@ -1602,13 +1576,13 @@
    * ------------------------------------------------------------------ */
   function refreshI18nLabels() {
     try {
-      tick(); updateDiag(); updateChromeLabels(); updateSingleControls();
+      renderLiveChip(); updateChromeLabels(); updateSingleControls();
       var mp = $('#motionPause'); if (mp) mp.textContent = state.motionPaused ? T('▶ Resume') : T('⏸ Pause');
       var ms = $('#motionSource'); if (ms) ms.textContent = state.motionAll ? T('All channels') : T('On air only');
       var fab = $('#focusAutoBtn'); if (fab) fab.textContent = state.focusAuto ? T('⟳ Auto-rotate: on') : T('⟳ Auto-rotate');
       renderSidebar();
       Object.keys(tiles).forEach(refreshTileTag);
-      if (state.layout !== 'motion') applyLayout();   // refresh the diag layout label
+      if (state.layout !== 'motion') applyLayout();
     } catch (e) {}
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refreshI18nLabels);

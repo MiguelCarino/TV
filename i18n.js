@@ -916,14 +916,12 @@ const I18N_ATTRS = [
     ['#iptv-cat', 'placeholder', 'IPTV (used when the playlist has no group-title)'],
     ['#f-url', 'placeholder', 'https://www.youtube.com/watch?v=…  ·  youtube.com/@handle  ·  twitch.tv/…  ·  any embed URL'],
     ['#f-name', 'placeholder', 'e.g. France 24 English'],
-    ['#diagToggle', 'title', 'System status'],
     ['#addModal .close', 'aria-label', 'Close'],
     ['#settingsModal .close', 'aria-label', 'Close'],
     ['#iptvModal .close', 'aria-label', 'Close'],
     // aria-label carries the accessible name for controls whose visible label
     // is an icon or a shorthand, so it needs translating exactly like title.
     ['#sbToggle', 'aria-label', 'Toggle Control Room'],
-    ['#diagToggle', 'aria-label', 'System status'],
     ['#search', 'aria-label', 'Search channels'],
     ['#searchClear', 'aria-label', 'Clear search'],
     ['#layoutSeg', 'aria-label', 'Layout mode'],
